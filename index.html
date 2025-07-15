@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/soclynk-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soclynk - Decentralized Social Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              twitter: {
+                blue: '#1DA1F2',
+                'dark-blue': '#1A91DA',
+                black: '#14171A',
+                'dark-gray': '#657786',
+                'light-gray': '#AAB8C2',
+                'extra-light-gray': '#E1E8ED',
+                'extra-extra-light-gray': '#F7F9FA',
+              },
+            },
+          },
+        },
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html> 

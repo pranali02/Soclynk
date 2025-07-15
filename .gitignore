@@ -1,0 +1,25 @@
+# Large files
+dfx-0.15.1-x86_64-linux.tar.gz
+*.tar.gz
+dfx
+
+# Dependencies
+node_modules/
+target/
+dist/
+.dfx/
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+**/*.rs.bk
+*.sw?
+**/.DS_Store

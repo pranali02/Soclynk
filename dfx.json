@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "canisters": {
+    "onchain360_backend": {
+      "type": "rust",
+      "package": "onchain360_backend",
+      "candid": "src/onchain360_backend/onchain360_backend.did"
+    },
+    "onchain360_frontend": {
+      "type": "assets",
+      "source": ["dist/"]
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:4943",
+      "type": "ephemeral"
+    }
+  }
+}

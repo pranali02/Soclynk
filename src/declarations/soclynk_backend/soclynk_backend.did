@@ -1,0 +1,99 @@
+type Principal = principal;
+
+type User = record {
+  id: Principal;
+  username: text;
+  bio: text;
+  profile_picture: opt text;
+  created_at: nat64;
+  followers_count: nat64;
+  following_count: nat64;
+  posts_count: nat64;
+};
+
+type Post = record {
+  id: text;
+  author: Principal;
+  content: text;
+  image_url: opt text;
+  created_at: nat64;
+  likes_count: nat64;
+  comments_count: nat64;
+  liked_by: vec Principal;
+};
+
+type Comment = record {
+  id: text;
+  post_id: text;
+  author: Principal;
+  content: text;
+  created_at: nat64;
+};
+
+type CreateUserRequest = record {
+  username: text;
+  bio: text;
+  profile_picture: opt text;
+};
+
+type CreatePostRequest = record {
+  content: text;
+  image_url: opt text;
+};
+
+type CreateCommentRequest = record {
+  post_id: text;
+  content: text;
+};
+
+type PostWithAuthor = record {
+  id: text;
+  author: Principal;
+  author_username: text;
+  content: text;
+  image_url: opt text;
+  created_at: nat64;
+  likes_count: nat64;
+  comments_count: nat64;
+  liked_by: vec Principal;
+};
+
+type Result_User = variant {
+  Ok: User;
+  Err: text;
+};
+
+type Result_Post = variant {
+  Ok: Post;
+  Err: text;
+};
+
+type Result_Comment = variant {
+  Ok: Comment;
+  Err: text;
+};
+
+type Result_Unit = variant {
+  Ok;
+  Err: text;
+};
+
+service : {
+  // User management
+  create_user: (CreateUserRequest) -> (Result_User);
+  get_user: (Principal) -> (opt User) query;
+  get_current_user: () -> (opt User) query;
+  update_user: (CreateUserRequest) -> (Result_User);
+  get_caller: () -> (Principal) query;
+  
+  // Post management
+  create_post: (CreatePostRequest) -> (Result_Post);
+  get_posts: () -> (vec PostWithAuthor) query;
+  get_user_posts: (Principal) -> (vec PostWithAuthor) query;
+  like_post: (text) -> (Result_Post);
+  delete_post: (text) -> (Result_Unit);
+  
+  // Comment management
+  create_comment: (CreateCommentRequest) -> (Result_Comment);
+  get_comments: (text) -> (vec Comment) query;
+}
