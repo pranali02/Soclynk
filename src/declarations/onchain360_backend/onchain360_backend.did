@@ -1,0 +1,49 @@
+type User = record {
+  id : principal;
+  username : text;
+  bio : text;
+  profile_picture : opt text;
+  created_at : nat64;
+  followers_count : nat64;
+  following_count : nat64;
+  posts_count : nat64;
+};
+
+type Post = record {
+  id : text;
+  author : principal;
+  author_username : text;
+  content : text;
+  image_url : opt text;
+  created_at : nat64;
+  likes_count : nat64;
+  comments_count : nat64;
+  liked_by : vec principal;
+};
+
+type CreateUserRequest = record {
+  username : text;
+  bio : text;
+  profile_picture : opt text;
+};
+
+type CreatePostRequest = record {
+  content : text;
+  image_url : opt text;
+};
+
+type ApiResult_1 = variant { Ok : bool; Err : text };
+type ApiResult = variant { Ok : User; Err : text };
+type ApiResult_2 = variant { Ok : Post; Err : text };
+
+service : {
+  get_caller : () -> (principal) query;
+  create_user : (CreateUserRequest) -> (ApiResult);
+  get_current_user : () -> (opt User) query;
+  get_user : (principal) -> (opt User) query;
+  create_post : (CreatePostRequest) -> (ApiResult_2);
+  get_posts : () -> (vec Post) query;
+  get_user_posts : (principal) -> (vec Post) query;
+  like_post : (text) -> (ApiResult_2);
+  delete_post : (text) -> (ApiResult_1);
+} 

@@ -22,24 +22,13 @@ import {
   Archive,
   ChevronRight,
   X,
-  Check,
   Moon,
   Sun,
-  Smartphone,
   Monitor,
   Eye,
-  Lock,
-  Bell,
   UserCheck,
-  MessageSquare,
   Search,
-  ExternalLink,
-  Star,
-  Award,
-  Camera,
-  Music,
-  Video,
-  Mic
+  Star
 } from 'lucide-react';
 import { pageVariants, pageTransition, staggerContainer, fadeInUp } from '../utils/animations';
 
@@ -563,7 +552,7 @@ const More: React.FC = () => {
               </h2>
               
               <div className="space-y-1">
-                {section.items.map((item, itemIndex) => (
+                {section.items.map((item) => (
                   <motion.button
                     key={item.label}
                     className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-gray-900/50 transition-all duration-200 group"

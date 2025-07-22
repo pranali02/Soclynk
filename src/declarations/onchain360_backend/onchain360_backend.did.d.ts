@@ -2,14 +2,12 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
-export interface Comment {
-  'id' : string,
-  'post_id' : string,
-  'content' : string,
-  'created_at' : bigint,
-  'author' : Principal,
-}
-export interface CreateCommentRequest { 'post_id' : string, 'content' : string }
+export type ApiResult = { 'Ok' : User } |
+  { 'Err' : string };
+export type ApiResult_1 = { 'Ok' : boolean } |
+  { 'Err' : string };
+export type ApiResult_2 = { 'Ok' : Post } |
+  { 'Err' : string };
 export interface CreatePostRequest {
   'content' : string,
   'image_url' : [] | [string],
@@ -26,29 +24,10 @@ export interface Post {
   'liked_by' : Array<Principal>,
   'created_at' : bigint,
   'author' : Principal,
-  'comments_count' : bigint,
-  'likes_count' : bigint,
-}
-export interface PostWithAuthor {
-  'id' : string,
-  'content' : string,
-  'image_url' : [] | [string],
-  'liked_by' : Array<Principal>,
-  'created_at' : bigint,
-  'author' : Principal,
   'author_username' : string,
   'comments_count' : bigint,
   'likes_count' : bigint,
 }
-export type Principal = Principal;
-export type Result_Comment = { 'Ok' : Comment } |
-  { 'Err' : string };
-export type Result_Post = { 'Ok' : Post } |
-  { 'Err' : string };
-export type Result_Unit = { 'Ok' : null } |
-  { 'Err' : string };
-export type Result_User = { 'Ok' : User } |
-  { 'Err' : string };
 export interface User {
   'id' : Principal,
   'bio' : string,
@@ -60,19 +39,15 @@ export interface User {
   'followers_count' : bigint,
 }
 export interface _SERVICE {
-  'create_comment' : ActorMethod<[CreateCommentRequest], Result_Comment>,
-  'create_post' : ActorMethod<[CreatePostRequest], Result_Post>,
-  'create_user' : ActorMethod<[CreateUserRequest], Result_User>,
-  'delete_post' : ActorMethod<[string], Result_Unit>,
-  'get_all_posts' : ActorMethod<[], Array<PostWithAuthor>>,
+  'create_post' : ActorMethod<[CreatePostRequest], ApiResult_2>,
+  'create_user' : ActorMethod<[CreateUserRequest], ApiResult>,
+  'delete_post' : ActorMethod<[string], ApiResult_1>,
   'get_caller' : ActorMethod<[], Principal>,
-  'get_comments' : ActorMethod<[string], Array<Comment>>,
   'get_current_user' : ActorMethod<[], [] | [User]>,
-  'get_posts' : ActorMethod<[], Array<PostWithAuthor>>,
+  'get_posts' : ActorMethod<[], Array<Post>>,
   'get_user' : ActorMethod<[Principal], [] | [User]>,
-  'get_user_posts' : ActorMethod<[Principal], Array<PostWithAuthor>>,
-  'like_post' : ActorMethod<[string], Result_Post>,
-  'update_user' : ActorMethod<[CreateUserRequest], Result_User>,
+  'get_user_posts' : ActorMethod<[Principal], Array<Post>>,
+  'like_post' : ActorMethod<[string], ApiResult_2>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

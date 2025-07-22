@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { getAuthenticatedActor } from '../services/actor';
 import { PostWithAuthor } from '../types';
-import { Heart, MessageCircle, Trash2, MoreHorizontal, Share, Repeat2, Link, Edit3, Quote, Clock, Flag } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, MoreHorizontal, Share, Repeat2, Link, Edit3, Clock, Flag } from 'lucide-react';
 import CommentModal from './CommentModal';
 import EditPostModal from './EditPostModal';
 import RepostModal from './RepostModal';

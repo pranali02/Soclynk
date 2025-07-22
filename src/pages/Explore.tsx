@@ -8,9 +8,6 @@ import {
   Calendar,
   Users,
   Heart,
-  MessageCircle,
-  Repeat2,
-  Share,
   MoreHorizontal,
   Filter,
   Star,
@@ -23,7 +20,6 @@ import {
 import { pageVariants, pageTransition, staggerContainer, fadeInUp, cardVariants } from '../utils/animations';
 import { useToast, createToast } from '../components/ui/ToastNotification';
 import AnimatedButton from '../components/ui/AnimatedButton';
-import GlassCard from '../components/ui/GlassCard';
 
 const Explore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'trending' | 'news' | 'sports' | 'entertainment'>('trending');
@@ -196,7 +192,7 @@ const Explore: React.FC = () => {
     }
   };
 
-  const handleFollowUser = (userId: number) => {
+  const handleFollowUser = () => {
     addToast(createToast.success('Following!', 'You\'re now following this user'));
   };
 
@@ -339,7 +335,7 @@ const Explore: React.FC = () => {
                                 <p className="text-xs text-gray-400">{result.posts} posts</p>
                               </div>
                             ) : (
-                              <div onClick={() => handleFollowUser(result.id)}>
+                              <div onClick={() => handleFollowUser()}>
                                 <p className="text-white font-medium">@{result.username}</p>
                                 <p className="text-xs text-gray-400">{result.followers} followers</p>
                               </div>
@@ -568,7 +564,7 @@ const Explore: React.FC = () => {
                       </div>
                       
                       <AnimatedButton
-                        onClick={() => handleFollowUser(user.id)}
+                        onClick={() => handleFollowUser()}
                         variant="secondary"
                         size="sm"
                         className="ml-2 px-4 py-1.5 bg-white text-black hover:bg-gray-200 rounded-full text-sm font-medium"

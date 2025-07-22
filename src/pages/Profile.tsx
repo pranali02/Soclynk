@@ -11,42 +11,29 @@ import {
   Calendar, 
   MessageCircle, 
   Heart, 
-  Image, 
-  Settings, 
   MapPin, 
-  Link as LinkIcon,
   Users,
   Award,
   TrendingUp,
   Share,
   Star,
-  Zap,
-  Trophy,
-  Target,
   BarChart3,
   Eye,
-  Repeat,
-  Clock,
   Activity,
-  Flame,
-  Crown,
   Shield,
-  Diamond,
   CheckCircle,
   ThumbsUp,
   MessageSquare,
   UserPlus,
-  Bookmark,
-  MoreHorizontal
+  Crown,
+  Trophy
 } from 'lucide-react';
 import { 
   pageVariants, 
   pageTransition, 
   fadeInUp, 
-  slideInVariants, 
   staggerContainer, 
   itemVariants,
-  cardVariants,
   shimmerVariants 
 } from '../utils/animations';
 import GlassCard from '../components/ui/GlassCard';
@@ -277,15 +264,6 @@ const Profile: React.FC = () => {
 
   const handleFollowingClick = () => {
     addToast(createToast.info('Coming Soon', 'Following list feature is in development'));
-  };
-
-  const formatDate = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
   };
 
   const getInitials = (username: string) => {
@@ -634,7 +612,7 @@ const Profile: React.FC = () => {
                 <GlassCard intensity="medium" className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Hashtags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {analytics.topHashtags.map((tag, index) => (
+                    {analytics.topHashtags.map((tag) => (
                       <span
                         key={tag}
                         className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium"

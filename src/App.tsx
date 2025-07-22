@@ -12,7 +12,6 @@ import Communities from './pages/Communities'
 import Governance from './pages/Governance'
 import Notifications from './pages/Notifications'
 import More from './pages/More'
-import BackendStatusIndicator from './components/ui/BackendStatusIndicator'
 
 function App() {
   return (
@@ -33,7 +32,6 @@ function App() {
                 <Route path="more" element={<More />} />
               </Route>
             </Routes>
-            <BackendStatusIndicator />
           </Router>
         </AuthProvider>
       </ToastProvider>

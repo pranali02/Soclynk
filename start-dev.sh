@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # OnChain360 Development Start Script
 # This script will start the development environment

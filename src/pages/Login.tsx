@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { Wallet, Check, ArrowRight, Download, Sparkles, Shield, Zap } from 'lucide-react';
-import { pageVariants, pageTransition, cardVariants, floatingVariants } from '../utils/animations';
+import { Wallet, ArrowRight, Download, Sparkles, Shield, Zap } from 'lucide-react';
+import { pageVariants, pageTransition, floatingVariants } from '../utils/animations';
 import AnimatedButton from '../components/ui/AnimatedButton';
 import GlassCard from '../components/ui/GlassCard';
 

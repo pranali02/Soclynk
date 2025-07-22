@@ -13,7 +13,6 @@ import {
   X, 
   Bell, 
   Search,
-  TrendingUp,
   MessageCircle,
   Hash,
   Users,
@@ -27,7 +26,6 @@ import {
   backdropVariants,
   navbarVariants,
   mobileMenuVariants,
-  scrollFadeIn,
   sidebarItemVariants,
   sidebarContainerVariants,
   sidebarLogoVariants,
@@ -46,7 +44,6 @@ const Layout: React.FC = () => {
 
   // Enhanced scroll handling with direction detection and performance optimization
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
 
     const handleScroll = () => {
@@ -55,7 +52,6 @@ const Layout: React.FC = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           setScrolled(currentScrollY > 20);
-          lastScrollY = currentScrollY;
           ticking = false;
         });
         ticking = true;
@@ -183,7 +179,7 @@ const Layout: React.FC = () => {
             initial="hidden"
             animate="visible"
           >
-            {navigationItems.map((item, index) => {
+            {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               
@@ -414,7 +410,7 @@ const Layout: React.FC = () => {
                     initial="hidden"
                     animate="visible"
                   >
-                    {navigationItems.map((item, index) => {
+                    {navigationItems.map((item) => {
                       const Icon = item.icon;
                       const isActive = location.pathname === item.path;
                       
@@ -422,7 +418,7 @@ const Layout: React.FC = () => {
                         <motion.div
                           key={item.path}
                           variants={itemVariants}
-                          transition={{ delay: index * 0.1 }}
+                          transition={{ delay: 0.1 }}
                         >
                           <Link
                             to={item.path}
@@ -447,7 +443,7 @@ const Layout: React.FC = () => {
                         </motion.div>
                       );
                     })}
-                    
+                  
                     <motion.div className="border-t border-gray-700 pt-4 mt-4">
                       <button
                         onClick={toggleTheme}
@@ -459,7 +455,7 @@ const Layout: React.FC = () => {
                         </span>
                       </button>
                     </motion.div>
-
+                  
                     <motion.div className="border-t border-gray-700 pt-4 mt-4">
                       <button
                         onClick={handleLogout}

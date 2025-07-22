@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { getAuthenticatedActor } from '../services/actor';
 import { Proposal, Vote } from '../types';
 import ProposalCard from '../components/ProposalCard';
 import CreateProposalModal from '../components/CreateProposalModal';
@@ -9,19 +8,12 @@ import CreateProfile from '../components/CreateProfile';
 import { 
   Scale, 
   Plus, 
-  Filter,
   Search,
-  TrendingUp,
   Users,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Timer,
-  Vote as VoteIcon,
-  Shield,
   Gavel,
   FileText,
-  BarChart3
+  BarChart3, 
+  Vote as VoteIcon
 } from 'lucide-react';
 import { 
   pageVariants, 
@@ -74,29 +66,56 @@ const Governance: React.FC = () => {
   const loadProposals = async () => {
     try {
       setLoading(true);
-      const actor = await getAuthenticatedActor();
-      const proposalsData = await actor.get_proposals();
+      // TODO: Implement get_proposals in backend and update here
+      // const proposalsData = await actor.get_proposals();
       
-      // Convert backend data to frontend format
-      const formattedProposals: Proposal[] = proposalsData.map((p: any) => ({
-        id: p.id,
-        proposer: p.proposer.toString(),
-        proposer_username: p.proposer_username,
-        title: p.title,
-        description: p.description,
-        proposal_type: p.proposal_type,
-        target_post_id: p.target_post_id?.[0],
-        target_user_id: p.target_user_id?.[0],
-        created_at: p.created_at,
-        voting_deadline: p.voting_deadline,
-        status: p.status,
-        votes_for: p.votes_for,
-        votes_against: p.votes_against,
-        total_votes: p.total_votes,
-        voters: p.voters.map((v: any) => v.toString()),
-      }));
+      // Load from localStorage for development
+      const localProposals = JSON.parse(localStorage.getItem('proposals') || '[]');
+      setProposals(localProposals);
       
-      setProposals(formattedProposals);
+      if (localProposals.length === 0) {
+        // Create some mock proposals for demonstration
+        const mockProposals: Proposal[] = [
+          {
+            id: 'proposal_1',
+            proposer: user?.id || 'demo_user',
+            proposer_username: user?.username || 'demo_user',
+            title: 'Implement Community Moderation Guidelines',
+            description: 'Proposal to establish clear community guidelines for content moderation, including procedures for reporting inappropriate content and consequences for violations.',
+            proposal_type: 'change_rule',
+            created_at: BigInt(Date.now() * 1000000),
+            voting_deadline: BigInt((Date.now() + (24 * 60 * 60 * 1000)) * 1000000),
+            status: 'active',
+            votes_for: BigInt(8),
+            votes_against: BigInt(3),
+            total_votes: BigInt(11),
+            voters: ['user1', 'user2', 'user3'],
+          },
+          {
+            id: 'proposal_2',
+            proposer: 'moderator_1',
+            proposer_username: 'moderator_alice',
+            title: 'Remove Inappropriate Post',
+            description: 'This post contains spam content that violates our community guidelines. It should be removed to maintain the quality of our platform.',
+            proposal_type: 'moderate_post',
+            target_post_id: 'post_123',
+            created_at: BigInt((Date.now() - 12 * 60 * 60 * 1000) * 1000000),
+            voting_deadline: BigInt((Date.now() + (12 * 60 * 60 * 1000)) * 1000000),
+            status: 'active',
+            votes_for: BigInt(15),
+            votes_against: BigInt(2),
+            total_votes: BigInt(17),
+            voters: ['user4', 'user5', 'user6'],
+          },
+        ];
+        setProposals(mockProposals);
+        localStorage.setItem('proposals', JSON.stringify(mockProposals));
+      }
+      
+      addToast(createToast.info(
+        'Welcome to Governance!',
+        'Participate in community decisions and proposals'
+      ));
     } catch (error) {
       console.error('Error loading proposals:', error);
       console.log('Using local proposals as fallback...');

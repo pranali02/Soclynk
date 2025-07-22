@@ -1,13 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, User } from '../types';
-import { getAuthenticatedActor } from '../services/actor';
-import { canisterId as backendCanisterId } from '../declarations/onchain360_backend';
+import { getAuthenticatedActor, checkBackendStatus } from '../services/actor';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Determine canister ID based on environment
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const CANISTER_ID = isLocal ? backendCanisterId || 'rrkah-fqaaa-aaaaa-aaaaq-cai' : 'vizcg-th777-77774-qaaea-cai';
+// Canister ID from environment
+const CANISTER_ID = 'uxrrr-q7777-77774-qaaaq-cai';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -76,6 +74,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
+        // Check backend status first
+        const backendAvailable = await checkBackendStatus();
+        if (!backendAvailable) {
+          console.warn('Backend not available, but wallet is connected');
+          setBackendError('Backend connection unavailable. Some features may be limited.');
+          setIsAuthenticated(true); // Still allow user to be authenticated
+          setIsLoading(false);
+          return;
+        }
+        
         try {
           // Get user data from backend
           const actor = await getAuthenticatedActor();
@@ -94,15 +102,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               posts_count: userObj.posts_count,
             });
             setIsAuthenticated(true);
+          } else {
+            // User is connected but has no profile
+            setIsAuthenticated(true);
+            setUser(null);
           }
         } catch (error) {
-          console.error('Backend not available during connection check:', error);
-          setBackendError('Backend connection failed. Please ensure the onchain360_backend canister is deployed and dfx is running.');
-          setIsAuthenticated(false);
+          console.error('Backend error during connection check:', error);
+          setBackendError('Backend connection failed. You can still use the app with limited functionality.');
+          setIsAuthenticated(true); // Allow user to stay authenticated
         }
       }
     } catch (error) {
       console.error('Error checking connection:', error);
+      setBackendError('Connection check failed. Please try refreshing the page.');
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const connected = await window.ic.plug.requestConnect({
         whitelist,
-        host: isLocal ? 'http://127.0.0.1:4943' : 'https://ic0.app',
+        host: 'http://127.0.0.1:4943',
       });
 
       if (connected) {
@@ -136,6 +149,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Verify agent is available
         if (!window.ic.plug.agent) {
           throw new Error('Plug agent not available');
+        }
+        
+        // Check backend status
+        const backendAvailable = await checkBackendStatus();
+        if (!backendAvailable) {
+          console.warn('Backend not available during login');
+          setBackendError('Backend connection unavailable. You can browse the app but some features may be limited.');
+          setIsAuthenticated(true);
+          setUser(null);
+          return;
         }
         
         try {
@@ -164,11 +187,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsAuthenticated(true);
           }
         } catch (error) {
-          console.error('Backend not available during login:', error);
+          console.error('Backend error during login:', error);
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          setBackendError(`Backend connection failed: ${errorMessage}. Please ensure the onchain360_backend canister is deployed and dfx is running.`);
-          alert(`Backend connection failed: ${errorMessage}. Please ensure the onchain360_backend canister is deployed and dfx is running.`);
-          setIsAuthenticated(false);
+          setBackendError(`Backend connection failed: ${errorMessage}. You can still browse the app.`);
+          setIsAuthenticated(true); // Still allow login
+          setUser(null);
         }
       }
     } catch (error) {

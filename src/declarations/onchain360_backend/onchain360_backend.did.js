@@ -1,20 +1,4 @@
-// Ensure canister ID is properly exported for the deployed backend
-export const canisterId = process.env.CANISTER_ID_ONCHAIN360_BACKEND || 'vizcg-th777-77774-qaaea-cai';
-
 export const idlFactory = ({ IDL }) => {
-  const CreateCommentRequest = IDL.Record({
-    'post_id' : IDL.Text,
-    'content' : IDL.Text,
-  });
-  const Principal = IDL.Principal;
-  const Comment = IDL.Record({
-    'id' : IDL.Text,
-    'post_id' : IDL.Text,
-    'content' : IDL.Text,
-    'created_at' : IDL.Nat64,
-    'author' : Principal,
-  });
-  const Result_Comment = IDL.Variant({ 'Ok' : Comment, 'Err' : IDL.Text });
   const CreatePostRequest = IDL.Record({
     'content' : IDL.Text,
     'image_url' : IDL.Opt(IDL.Text),
@@ -23,20 +7,21 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Text,
     'content' : IDL.Text,
     'image_url' : IDL.Opt(IDL.Text),
-    'liked_by' : IDL.Vec(Principal),
+    'liked_by' : IDL.Vec(IDL.Principal),
     'created_at' : IDL.Nat64,
-    'author' : Principal,
+    'author' : IDL.Principal,
+    'author_username' : IDL.Text,
     'comments_count' : IDL.Nat64,
     'likes_count' : IDL.Nat64,
   });
-  const Result_Post = IDL.Variant({ 'Ok' : Post, 'Err' : IDL.Text });
+  const ApiResult_2 = IDL.Variant({ 'Ok' : Post, 'Err' : IDL.Text });
   const CreateUserRequest = IDL.Record({
     'bio' : IDL.Text,
     'username' : IDL.Text,
     'profile_picture' : IDL.Opt(IDL.Text),
   });
   const User = IDL.Record({
-    'id' : Principal,
+    'id' : IDL.Principal,
     'bio' : IDL.Text,
     'username' : IDL.Text,
     'profile_picture' : IDL.Opt(IDL.Text),
@@ -45,37 +30,18 @@ export const idlFactory = ({ IDL }) => {
     'created_at' : IDL.Nat64,
     'followers_count' : IDL.Nat64,
   });
-  const Result_User = IDL.Variant({ 'Ok' : User, 'Err' : IDL.Text });
-  const Result_Unit = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
-  const PostWithAuthor = IDL.Record({
-    'id' : IDL.Text,
-    'content' : IDL.Text,
-    'image_url' : IDL.Opt(IDL.Text),
-    'liked_by' : IDL.Vec(Principal),
-    'created_at' : IDL.Nat64,
-    'author' : Principal,
-    'author_username' : IDL.Text,
-    'comments_count' : IDL.Nat64,
-    'likes_count' : IDL.Nat64,
-  });
+  const ApiResult = IDL.Variant({ 'Ok' : User, 'Err' : IDL.Text });
+  const ApiResult_1 = IDL.Variant({ 'Ok' : IDL.Bool, 'Err' : IDL.Text });
   return IDL.Service({
-    'create_comment' : IDL.Func([CreateCommentRequest], [Result_Comment], []),
-    'create_post' : IDL.Func([CreatePostRequest], [Result_Post], []),
-    'create_user' : IDL.Func([CreateUserRequest], [Result_User], []),
-    'delete_post' : IDL.Func([IDL.Text], [Result_Unit], []),
-    'get_all_posts' : IDL.Func([], [IDL.Vec(PostWithAuthor)], ['query']),
-    'get_caller' : IDL.Func([], [Principal], ['query']),
-    'get_comments' : IDL.Func([IDL.Text], [IDL.Vec(Comment)], ['query']),
+    'create_post' : IDL.Func([CreatePostRequest], [ApiResult_2], []),
+    'create_user' : IDL.Func([CreateUserRequest], [ApiResult], []),
+    'delete_post' : IDL.Func([IDL.Text], [ApiResult_1], []),
+    'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
     'get_current_user' : IDL.Func([], [IDL.Opt(User)], ['query']),
-    'get_posts' : IDL.Func([], [IDL.Vec(PostWithAuthor)], ['query']),
-    'get_user' : IDL.Func([Principal], [IDL.Opt(User)], ['query']),
-    'get_user_posts' : IDL.Func(
-        [Principal],
-        [IDL.Vec(PostWithAuthor)],
-        ['query'],
-      ),
-    'like_post' : IDL.Func([IDL.Text], [Result_Post], []),
-    'update_user' : IDL.Func([CreateUserRequest], [Result_User], []),
+    'get_posts' : IDL.Func([], [IDL.Vec(Post)], ['query']),
+    'get_user' : IDL.Func([IDL.Principal], [IDL.Opt(User)], ['query']),
+    'get_user_posts' : IDL.Func([IDL.Principal], [IDL.Vec(Post)], ['query']),
+    'like_post' : IDL.Func([IDL.Text], [ApiResult_2], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

@@ -1,12 +1,17 @@
 {
   "version": 1,
   "canisters": {
+    "soclynk_backend": {
+      "type": "rust",
+      "package": "soclynk_backend",
+      "candid": "src/soclynk_backend/soclynk_backend.did"
+    },
     "onchain360_backend": {
       "type": "rust",
       "package": "onchain360_backend",
       "candid": "src/onchain360_backend/onchain360_backend.did"
     },
-    "onchain360_frontend": {
+    "soclynk_frontend": {
       "type": "assets",
       "source": ["dist/"]
     }

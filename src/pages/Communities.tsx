@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
   Search, 
   Plus, 
   Star,
-  MapPin,
   Calendar,
   Crown,
   Shield,
@@ -13,15 +12,8 @@ import {
   TrendingUp,
   MessageCircle,
   UserPlus,
-  Settings,
-  MoreHorizontal,
-  Filter,
-  CheckCircle,
-  Clock,
-  Globe,
   Lock,
   Eye,
-  UserMinus,
   Bookmark,
   Share2
 } from 'lucide-react';
@@ -183,7 +175,7 @@ const Communities: React.FC = () => {
 
   // Categories for filtering
   const categories = [
-    { id: 'all', name: 'All Categories', icon: Globe, count: discoverCommunities.length },
+    { id: 'all', name: 'All Categories', icon: Users, count: discoverCommunities.length },
     { id: 'Technology', name: 'Technology', icon: Hash, count: discoverCommunities.filter(c => c.category === 'Technology').length },
     { id: 'Finance', name: 'Finance', icon: TrendingUp, count: discoverCommunities.filter(c => c.category === 'Finance').length },
     { id: 'Art & Design', name: 'Art & Design', icon: Star, count: discoverCommunities.filter(c => c.category === 'Art & Design').length },
@@ -320,7 +312,7 @@ const Communities: React.FC = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <Filter className="w-5 h-5 text-gray-400" />
+                  <Shield className="w-5 h-5 text-gray-400" />
                 </motion.button>
               </div>
 
@@ -480,7 +472,7 @@ const Communities: React.FC = () => {
                               )}
                               <div className="flex items-center space-x-1">
                                 {community.privacy === 'Public' ? (
-                                  <Globe className="w-4 h-4 text-green-400" />
+                                  <Shield className="w-4 h-4 text-green-400" />
                                 ) : (
                                   <Lock className="w-4 h-4 text-orange-400" />
                                 )}
@@ -554,7 +546,7 @@ const Communities: React.FC = () => {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap gap-2">
-                          {community.tags.slice(0, 3).map((tag, tagIndex) => (
+                          {community.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
                             <motion.span 
                               key={tagIndex}
                               className="text-xs bg-gray-800/50 text-yellow-400 px-3 py-1 rounded-full border border-gray-700 hover:bg-yellow-400/10 cursor-pointer transition-colors duration-200"
@@ -587,7 +579,7 @@ const Communities: React.FC = () => {
                           >
                             {community.isJoined ? (
                               <>
-                                <UserMinus className="w-4 h-4" />
+                                <UserPlus className="w-4 h-4" />
                                 <span>Leave</span>
                               </>
                             ) : (

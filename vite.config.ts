@@ -8,9 +8,8 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     global: 'globalThis',
-          'process.env.CANISTER_ID_SOCLYNK_BACKEND': JSON.stringify('ulvla-h7777-77774-qaacq-cai'),
-    'process.env.DFX_NETWORK': JSON.stringify('local'),
   },
+  envPrefix: 'VITE_',
   server: {
     proxy: {
       '/api': {

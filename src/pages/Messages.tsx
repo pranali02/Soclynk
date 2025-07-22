@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { pageVariants, pageTransition, staggerContainer, fadeInUp } from '../utils/animations';
 import { useToast, createToast } from '../components/ui/ToastNotification';
-import AnimatedButton from '../components/ui/AnimatedButton';
 
 interface Message {
   id: string;

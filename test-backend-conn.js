@@ -1,14 +1,21 @@
 // Backend connectivity test script
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('===== Testing Backend Connectivity =====');
+
+// Get backend directory from environment variable or use default
+const backendDir = process.env.BACKEND_DIR || '/mnt/c/Users/HP/Desktop/ONCHAIN360';
 
 // Get canister ID
 let canisterId;
 try {
-  const output = execSync('wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd /mnt/c/Users/HP/Desktop/ONCHAIN360 && dfx canister id onchain360_backend"', { encoding: 'utf8' });
+  const output = execSync(`wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd ${backendDir} && dfx canister id onchain360_backend"`, { encoding: 'utf8' });
   canisterId = output.trim();
   console.log(`Found canister ID: ${canisterId}`);
 } catch (error) {
@@ -52,7 +59,7 @@ try {
 
 // Test dfx ping
 try {
-  const pingOutput = execSync('wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd /mnt/c/Users/HP/Desktop/ONCHAIN360 && dfx ping"', { encoding: 'utf8' });
+  const pingOutput = execSync(`wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd ${backendDir} && dfx ping"`, { encoding: 'utf8' });
   console.log('DFX ping successful:', pingOutput.trim());
 } catch (error) {
   console.error('DFX ping failed:', error.message);
@@ -61,7 +68,7 @@ try {
 
 // Test canister status
 try {
-  const statusOutput = execSync(`wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd /mnt/c/Users/HP/Desktop/ONCHAIN360 && dfx canister status onchain360_backend"`, { encoding: 'utf8' });
+  const statusOutput = execSync(`wsl -d Ubuntu -- bash -c "source ~/.local/share/dfx/env && cd ${backendDir} && dfx canister status onchain360_backend"`, { encoding: 'utf8' });
   console.log('Canister status:', statusOutput.trim());
 } catch (error) {
   console.error('Failed to get canister status:', error.message);
@@ -69,4 +76,4 @@ try {
 }
 
 console.log('===== Backend Connectivity Test PASSED =====');
-console.log('You can now start the frontend with: npm run dev'); 
+console.log('You can now start the frontend with: npm run dev');

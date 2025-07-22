@@ -1,245 +1,242 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
-import { AuthClient } from '@dfinity/auth-client';
+import { mockPosts, mockUsers } from '../utils/mockData';
 
-// Import the candid interface for onchain360_backend
-import { idlFactory } from '../declarations/onchain360_backend';
-import { canisterId as backendCanisterId } from '../declarations/onchain360_backend';
+// Import the candid interface for soclynk_backend
+import { idlFactory } from '../declarations/soclynk_backend';
 
-// Configuration options for different environments
-const LOCAL_REPLICA_URLS = [
-  'http://127.0.0.1:4943',  // Default local
-  'http://localhost:4943',  // Alternative local
-  'http://127.0.0.1:8000',  // Legacy
-  'http://localhost:8000',  // Legacy alternative
-];
+// Configuration
+const LOCAL_HOST = 'http://127.0.0.1:4943';
+const USE_MOCK_DATA = true; // Set to true to use mock data instead of backend
 
-const MAX_RETRIES = 5;
-const RETRY_DELAY = 1000; // 1 second
-
-// Dynamically determine environment
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-// Use environment-specific canister ID
-// For local development: first try from environment variables, then localStorage, then fallbacks
-const DEFAULT_LOCAL_CANISTER_ID = 'rrkah-fqaaa-aaaaa-aaaaq-cai';
-const PROD_CANISTER_ID = 'vizcg-th777-77774-qaaea-cai';
-
-// Get from .env if available
-const envCanisterId = import.meta.env?.VITE_CANISTER_ID || process.env?.VITE_CANISTER_ID;
-
-// Determine the canister ID to use
-const CANISTER_ID = isLocal 
-  ? envCanisterId || backendCanisterId || localStorage.getItem('localCanisterId') || DEFAULT_LOCAL_CANISTER_ID
-  : PROD_CANISTER_ID;
-
-// Log canister ID for debugging
-console.log('Using backend canister ID:', CANISTER_ID);
-
-// Function to handle window.location.reload safely
-const safeReload = () => {
-  try {
-    setTimeout(() => window.location.reload(), 500);
-  } catch (e) {
-    console.error('Failed to reload:', e);
+// Get canister ID from environment or use local development default
+const getCanisterId = () => {
+  // Try to get from Vite environment variables first
+  if (import.meta && import.meta.env && import.meta.env.VITE_CANISTER_ID_SOCLYNK_BACKEND) {
+    return import.meta.env.VITE_CANISTER_ID_SOCLYNK_BACKEND;
   }
+  // For local development, return default local canister ID
+  if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+    return import.meta.env.VITE_CANISTER_ID_SOCLYNK_BACKEND || 'rrkah-fqaaa-aaaaa-aaaaq-cai';
+  }
+  return 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Default local canister ID
 };
 
-// Types
+const CANISTER_ID = getCanisterId();
+
+console.log('Using backend canister ID:', CANISTER_ID);
+
+// Types for better integration
 export interface ActorService {
-  // User management
+  get_caller: () => Promise<Principal>;
   create_user: (request: {
     username: string;
     bio: string;
     profile_picture?: string;
   }) => Promise<{ Ok?: any; Err?: string }>;
-  
-  get_user: (principal: Principal) => Promise<any>;
   get_current_user: () => Promise<any>;
+  get_user: (principal: Principal) => Promise<any>;
   update_user: (request: {
     username: string;
     bio: string;
     profile_picture?: string;
   }) => Promise<{ Ok?: any; Err?: string }>;
-  
-  get_caller: () => Promise<Principal>;
-  
-  // Post management
-  create_post: (_request: {
+  create_post: (request: {
     content: string;
     image_url?: string;
   }) => Promise<{ Ok?: any; Err?: string }>;
-  
   get_posts: () => Promise<any[]>;
-  get_all_posts: () => Promise<any[]>;
-  get_user_posts: (_principal: Principal) => Promise<any[]>;
-  like_post: (_postId: string) => Promise<{ Ok?: any; Err?: string }>;
-  delete_post: (_postId: string) => Promise<{ Ok?: any; Err?: string }>;
-  
-  // Comment management
-  create_comment: (_request: {
+  get_user_posts: (principal: Principal) => Promise<any[]>;
+  like_post: (postId: string) => Promise<{ Ok?: any; Err?: string }>;
+  delete_post: (postId: string) => Promise<{ Ok?: any; Err?: string }>;
+  create_comment: (request: {
     post_id: string;
     content: string;
   }) => Promise<{ Ok?: any; Err?: string }>;
-  
-  get_comments: (_postId: string) => Promise<any[]>;
-  
-  // Governance management
-  create_proposal: (_request: {
-    title: string;
-    description: string;
-    proposal_type: string;
-    target_post_id?: string;
-    target_user_id?: string;
-    voting_duration_hours: number;
-  }) => Promise<{ Ok?: any; Err?: string }>;
-  
-  get_proposals: () => Promise<any[]>;
-  get_proposal: (_proposalId: string) => Promise<any>;
-  vote_on_proposal: (_request: {
-    proposal_id: string;
-    vote_type: string;
-  }) => Promise<{ Ok?: any; Err?: string }>;
-  
-  get_votes: (_proposalId: string) => Promise<any[]>;
-  get_user_vote: (_proposalId: string, _userId: string) => Promise<any>;
+  get_comments: (postId: string) => Promise<any[]>;
 }
-
-// Helper function to delay execution
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Helper to try multiple replica URLs
-const tryMultipleReplicas = async (fn: (url: string) => Promise<any>): Promise<{ success: boolean, result?: any, url?: string }> => {
-  for (const url of LOCAL_REPLICA_URLS) {
-    try {
-      // Store function result and return it with the URL
-      return { success: true, result: await fn(url), url };
-    } catch (e) {
-      console.warn(`Failed with replica URL ${url}:`, e);
-      // Continue to next URL
-    }
-  }
-  return { success: false };
-};
 
 class ActorManager {
   private actor: ActorService | null = null;
   private agent: HttpAgent | null = null;
-  private workingUrl: string | null = null;
+  private mockActor: ActorService | null = null;
 
-  async createActor(identity?: any, retryCount = 0): Promise<ActorService> {
+  async createActor(identity?: any): Promise<ActorService> {
+    // If we're using mock data, return the mock actor
+    if (USE_MOCK_DATA) {
+      if (!this.mockActor) {
+        this.mockActor = this.createMockActor();
+      }
+      return this.mockActor;
+    }
+
     try {
-      console.log(`Creating actor (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
+      console.log('Creating actor...');
       
       // Use Plug agent if available and no identity is provided
       if (!identity && window.ic?.plug?.agent) {
-        console.log('Using Plug agent for actor creation');
+        console.log('Using Plug agent');
         this.agent = window.ic.plug.agent;
       } else {
-        // If we're in a local environment, try multiple replica URLs
-        if (isLocal) {
-          if (this.workingUrl) {
-            // Use previously successful URL if we have one
-            console.log(`Using previously successful URL: ${this.workingUrl}`);
-            this.agent = new HttpAgent({
-              host: this.workingUrl,
-              identity,
-            });
-          } else {
-            // Try multiple URLs
-            console.log('Trying multiple replica URLs...');
-            const result = await tryMultipleReplicas(async (url) => {
-              console.log(`Trying replica URL: ${url}`);
-              const tempAgent = new HttpAgent({
-                host: url,
-                identity,
-              });
-              
-              await tempAgent.fetchRootKey();
-              return tempAgent;
-            });
-            
-            if (result.success && result.result) {
-              this.agent = result.result;
-              this.workingUrl = result.url as string;
-              console.log(`Successfully connected to replica at ${this.workingUrl}`);
-            } else {
-              console.error('Failed to connect to any replica URL');
-              throw new Error('Failed to connect to any replica URL');
-            }
-          }
-        } else {
-          // Production environment
-          console.log('Creating new HttpAgent for production');
-          this.agent = new HttpAgent({
-            host: 'https://ic0.app',
-            identity,
-          });
-        }
-      }
-
-      if (!CANISTER_ID) {
-        console.error('Canister ID not found. Check environment variables or declarations.');
-        throw new Error('Missing backend canister ID');
+        console.log('Creating new HttpAgent');
+        this.agent = new HttpAgent({
+          host: LOCAL_HOST,
+          identity,
+        });
+        
+        // Fetch root key for local development
+        await this.agent.fetchRootKey();
       }
 
       console.log('Creating actor with canister ID:', CANISTER_ID);
       this.actor = Actor.createActor(idlFactory, {
-        agent: this.agent,
+        agent: this.agent ?? undefined,
         canisterId: CANISTER_ID,
       }) as ActorService;
       
-      // Verify actor is working by testing a simple call
-      if (this.actor) {
-        try {
-          console.log('Testing backend connectivity...');
-          const principal = await this.actor.get_caller();
-          console.log('Actor initialized successfully. Principal:', principal.toString());
-          
-          // If we're in local mode, store the working canister ID
-          if (isLocal) {
-            localStorage.setItem('localCanisterId', CANISTER_ID);
-          }
-        } catch (error) {
-          console.error('Actor test call failed:', error);
-          
-          // Try again if we haven't exceeded max retries
-          if (retryCount < MAX_RETRIES) {
-            console.log(`Retrying in ${RETRY_DELAY}ms...`);
-            await delay(RETRY_DELAY);
-            return this.createActor(identity, retryCount + 1);
-          }
-          
-          throw new Error('Backend canister not responding. Please ensure it is deployed and running. Try running dfx-start.bat and dfx-status.bat.');
-        }
+      // Test the connection
+      try {
+        const principal = await this.actor.get_caller();
+        console.log('Actor initialized successfully. Principal:', principal.toString());
+      } catch (error) {
+        console.warn('Actor test call failed:', error);
+        // Don't throw here, let the actual method calls handle errors
       }
       
     } catch (error) {
       console.error('Failed to create actor:', error);
-      
-      // Try again if we haven't exceeded max retries
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying in ${RETRY_DELAY}ms...`);
-        await delay(RETRY_DELAY);
-        return this.createActor(identity, retryCount + 1);
-      }
-      
       throw new Error(`Failed to initialize backend connection: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     if (!this.actor) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`No actor created, retrying in ${RETRY_DELAY}ms...`);
-        await delay(RETRY_DELAY);
-        return this.createActor(identity, retryCount + 1);
-      }
       throw new Error('Actor creation failed');
     }
 
     return this.actor;
   }
 
+  private createMockActor(): ActorService {
+    console.log('Creating mock actor for development');
+    
+    // Generate a random principal ID for the current user
+    const mockPrincipal = Principal.fromText('2vxsx-fae');
+    
+    return {
+      get_caller: async () => {
+        return mockPrincipal;
+      },
+      
+      create_user: async (request) => {
+        console.log('Mock create_user called with:', request);
+        const user = {
+          id: mockPrincipal,
+          username: request.username,
+          bio: request.bio,
+          profile_picture: request.profile_picture,
+          created_at: BigInt(Date.now() * 1000000),
+          followers_count: BigInt(0),
+          following_count: BigInt(0),
+          posts_count: BigInt(0),
+        };
+        return { Ok: user };
+      },
+      
+      get_current_user: async () => {
+        return mockUsers[0];
+      },
+      
+      get_user: async () => {
+        return mockUsers[0];
+      },
+      
+      update_user: async (request) => {
+        console.log('Mock update_user called with:', request);
+        const user = {
+          id: mockPrincipal,
+          username: request.username,
+          bio: request.bio,
+          profile_picture: request.profile_picture,
+          created_at: BigInt(Date.now() * 1000000),
+          followers_count: BigInt(0),
+          following_count: BigInt(0),
+          posts_count: BigInt(0),
+        };
+        return { Ok: user };
+      },
+      
+      create_post: async (request) => {
+        console.log('Mock create_post called with:', request);
+        const post = {
+          id: `post_${Date.now()}`,
+          author: mockPrincipal,
+          content: request.content,
+          image_url: request.image_url,
+          created_at: BigInt(Date.now() * 1000000),
+          likes_count: BigInt(0),
+          comments_count: BigInt(0),
+          liked_by: [],
+        };
+        return { Ok: post };
+      },
+      
+      get_posts: async () => {
+        return mockPosts;
+      },
+      
+      get_user_posts: async () => {
+        return mockPosts.filter(post => post.author === mockUsers[0].id);
+      },
+      
+      like_post: async (postId) => {
+        console.log('Mock like_post called for post:', postId);
+        const post = mockPosts.find(p => p.id === postId);
+        if (post) {
+          post.likes_count = post.likes_count + BigInt(1);
+          post.liked_by.push(mockPrincipal);
+          return { Ok: post };
+        }
+        return { Err: 'Post not found' };
+      },
+      
+      delete_post: async (postId) => {
+        console.log('Mock delete_post called for post:', postId);
+        return { Ok: null };
+      },
+      
+      create_comment: async (request) => {
+        console.log('Mock create_comment called with:', request);
+        const comment = {
+          id: `comment_${Date.now()}`,
+          post_id: request.post_id,
+          author: mockPrincipal,
+          content: request.content,
+          created_at: BigInt(Date.now() * 1000000),
+        };
+        return { Ok: comment };
+      },
+      
+      get_comments: async (postId) => {
+        console.log('Mock get_comments called for post:', postId);
+        return [
+          {
+            id: 'comment_1',
+            post_id: postId,
+            author: mockPrincipal,
+            content: 'This is a mock comment',
+            created_at: BigInt(Date.now() * 1000000),
+          }
+        ];
+      },
+    };
+  }
+
   getActor(): ActorService | null {
+    if (USE_MOCK_DATA) {
+      if (!this.mockActor) {
+        this.mockActor = this.createMockActor();
+      }
+      return this.mockActor;
+    }
     return this.actor;
   }
 }
@@ -248,6 +245,11 @@ const actorManager = new ActorManager();
 
 // Create an authenticated actor using Plug Wallet
 export const getAuthenticatedActor = async (): Promise<ActorService> => {
+  // If we're using mock data, return the mock actor
+  if (USE_MOCK_DATA) {
+    return actorManager.getActor() || await actorManager.createActor();
+  }
+
   // Check if Plug is available and connected
   if (!window.ic?.plug) {
     throw new Error('Plug Wallet not available');
@@ -280,7 +282,7 @@ export const getAuthenticatedActor = async (): Promise<ActorService> => {
       console.log('Authenticated actor created successfully with Plug');
     } catch (callError) {
       console.error('Backend connectivity test failed:', callError);
-      throw new Error('Backend canister not responding to authenticated calls. Please ensure dfx is running by using dfx-start.bat.');
+      throw new Error('Backend canister not responding. Please ensure dfx is running.');
     }
     
     return plugActor as ActorService;
@@ -292,16 +294,25 @@ export const getAuthenticatedActor = async (): Promise<ActorService> => {
 
 // Create an anonymous actor (for read-only operations)
 export const getAnonymousActor = async (): Promise<ActorService> => {
+  // If we're using mock data, return the mock actor
+  if (USE_MOCK_DATA) {
+    return actorManager.getActor() || await actorManager.createActor();
+  }
   return await actorManager.createActor();
 };
 
 // Helper function to check backend status
 export const checkBackendStatus = async (): Promise<boolean> => {
+  // If we're using mock data, always return true
+  if (USE_MOCK_DATA) {
+    return true;
+  }
   try {
     const actor = await actorManager.createActor();
     await actor.get_caller();
     return true;
   } catch (error) {
+    console.error('Backend status check failed:', error);
     return false;
   }
 };

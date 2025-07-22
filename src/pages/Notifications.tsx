@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Bell, 
   Heart, 
@@ -14,9 +14,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { pageVariants, pageTransition, staggerContainer, fadeInUp, cardVariants } from '../utils/animations';
+import { pageVariants, pageTransition, staggerContainer, fadeInUp } from '../utils/animations';
 import { useToast, createToast } from '../components/ui/ToastNotification';
-import AnimatedButton from '../components/ui/AnimatedButton';
 
 const Notifications: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'mentions' | 'likes' | 'follows'>('all');

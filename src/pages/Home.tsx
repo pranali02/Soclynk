@@ -8,7 +8,6 @@ import CreatePost from '../components/CreatePost';
 import CreateProfile from '../components/CreateProfile';
 // Removed mockPosts and simulateDelay - fully on-chain application
 import { 
-  containerVariants, 
   itemVariants, 
   pageVariants, 
   pageTransition,
@@ -16,24 +15,18 @@ import {
   fadeInUp
 } from '../utils/animations';
 import { useToast, createToast } from '../components/ui/ToastNotification';
-import LoadingSkeleton from '../components/ui/LoadingSkeleton';
 import { 
   Sparkles, 
   Home as HomeIcon, 
   TrendingUp, 
   Users, 
   Hash, 
-  Clock, 
   Heart, 
   MessageCircle,
   Search,
   Plus,
-  Filter,
-  MoreHorizontal,
   UserPlus,
   Star,
-  Zap,
-  Eye,
   Flame,
   Settings
 } from 'lucide-react';
@@ -45,7 +38,6 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'following' | 'trending'>('all');
-  const [showStories, setShowStories] = useState(true);
 
   // Enhanced trending topics with real data
   const [trendingTopics] = useState([
@@ -157,7 +149,7 @@ const Home: React.FC = () => {
       console.log('Loading posts from onchain360_backend...');
       
       // Use get_all_posts from the backend canister
-      const backendPosts = await actor.get_all_posts();
+      const backendPosts = await actor.get_posts();
       console.log('Raw backend posts:', backendPosts);
       
       // Map backend data to frontend format with proper type conversion
@@ -283,7 +275,7 @@ const Home: React.FC = () => {
     window.location.reload();
   };
 
-  const handleFollowUser = (userId: number) => {
+  const handleFollowUser = () => {
     addToast(createToast.success('Following user!', 'You are now following this user'));
   };
 
@@ -372,7 +364,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* Stories */}
-          {showStories && (
+          {/* Removed showStories && ( */}
             <motion.div 
               className="border-b border-gray-200 dark:border-gray-800 p-4"
               variants={fadeInUp}
@@ -410,7 +402,7 @@ const Home: React.FC = () => {
                 ))}
               </div>
             </motion.div>
-          )}
+          {/* ) */}
 
           {/* Create Profile Modal */}
           <AnimatePresence>
@@ -619,7 +611,7 @@ const Home: React.FC = () => {
                       </div>
                     </div>
                     <motion.button
-                      onClick={() => handleFollowUser(user.id)}
+                      onClick={handleFollowUser}
                       className="bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded-full text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
